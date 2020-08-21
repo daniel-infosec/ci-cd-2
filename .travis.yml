@@ -1,0 +1,23 @@
+language: generic 
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t danielcatscrdl/ci-cd-2-test -f ./client/Dockerfile.dev
+
+script:
+  - docker run -e CI=true danielcatscrdl/ci-cd-2-test npm test
+
+after_success:
+  - docker build -t danielcatscrdl/ci-cd-2-client ./client
+  - docker build -t danielcatscrdl/ci-cd-2-server ./server
+  - docker build -t danielcatscrdl/ci-cd-2-nginx ./nginx
+  - docker build -t danielcatscrdl/ci-cd-2-worker ./worker
+  # Log into the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  # Take these images and push them to docker hub
+  - docker push danielcatscrdl/ci-cd-2-client
+  - docker push danielcatscrdl/ci-cd-2-nginx
+  - docker push danielcatscrdl/ci-cd-2-server
+  - docker push danielcatscrdl/ci-cd-2-worker
